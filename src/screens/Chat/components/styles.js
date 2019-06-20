@@ -22,3 +22,11 @@ export const sendButtonStyles = StyleSheet.create({
     tintColor: '#1F1B24',
   },
 });
+
+export const headerLeftStyles = StyleSheet.create({
+  icon: {
+    width: 30,
+    height: 30,
+    tintColor: '#1F1B24',
+  },
+});
