@@ -1,0 +1,9 @@
+{
+  "addons": [],
+  "buildpacks": [],
+  "env": {},
+  "formation": {},
+  "name": "Quotes",
+  "scripts": {},
+  "stack": "heroku-18"
+}
