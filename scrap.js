@@ -1,6 +1,7 @@
 import request from 'request';
 import cheerio from 'cheerio';
 import dotenv from 'dotenv';
+import uuid from 'uuid/v4';
 import db from './models';
 const { Quote } = db;
 dotenv.config();
@@ -45,7 +46,11 @@ export default async (req, res) => {
         saveQuotes(quotes);
         return res.status(200).json({
           message: 'success',
-          quotes: quotes.map((item, id) => ({ id, ...item }))
+          quotes: quotes.map((item, id) => ({
+            id: ++id,
+            cacheId: uuid(),
+            ...item
+          }))
         });
       }
       return notFound(res);

@@ -1,26 +1,19 @@
-'use strict';
 import fs from 'fs';
 import path from 'path';
 import Sequelize from 'sequelize';
-import configFile from '../config/config';
+import configPath from '../config/config';
 import dotenv from 'dotenv';
 dotenv.config();
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
-const config = configFile[env];
+
+const config = configPath[env];
+
 const db = {};
 
-let sequelize;
-if (config.use_env_variable) {
-  sequelize = new Sequelize(process.env.DATABASE_URL, config);
-} else {
-  sequelize = new Sequelize(
-    config.database,
-    config.username,
-    config.password,
-    config
-  );
-}
+const sequelize = config.use_env_variable
+  ? new Sequelize(process.env.DATABASE_URL)
+  : new Sequelize(config.database, config.username, config.password, config);
 
 fs.readdirSync(__dirname)
   .filter(file => {

@@ -3,7 +3,7 @@
   "buildpacks": [],
   "env": {},
   "formation": {},
-  "name": "Quotes",
+  "name": "they-quoted",
   "scripts": {},
   "stack": "heroku-18"
 }

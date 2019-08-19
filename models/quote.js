@@ -9,6 +9,12 @@ module.exports = (sequelize, DataTypes) => {
         primaryKey: true,
         type: DataTypes.INTEGER
       },
+      cacheId: {
+        allowNull: false,
+        primaryKey: true,
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4
+      },
       author: DataTypes.STRING,
       description: {
         type: DataTypes.TEXT,
