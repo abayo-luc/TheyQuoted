@@ -1,18 +1,21 @@
-import express from 'express';
-import scrap from './scrap';
-import { getQuotes } from './data';
-import { isQueryProvided } from './validator';
-const app = express();
-
-app.use(express.json());
-
-app.get('/data', isQueryProvided, getQuotes, scrap);
-app.use('*', (req, res) =>
-  res
-    .status(404)
-    .json({ message: 'API endpoint not found, try /data?query=something' })
-);
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Listening on port ${PORT}`);
+const app = require('http').createServer();
+const querystring = require('url');
+const { getQuotes } = require('./data');
+const { jsonResponse } = require('./helper');
+const { HOME, QUOTES } = require('./routes');
+app.on('request', async (req, res) => {
+  const { pathname } = querystring.parse(req.url, true);
+  switch (pathname) {
+    case HOME:
+      jsonResponse(res, 200, { message: 'Welcome to TheySaid API' });
+      break;
+    case QUOTES:
+      getQuotes(req, res);
+      break;
+    default:
+      jsonResponse(res, 404, { error: 'Router not found' });
+      break;
+  }
 });
+
+app.listen(3000, () => console.log('server listening to 3000'));

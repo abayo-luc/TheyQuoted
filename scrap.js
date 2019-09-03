@@ -1,61 +1,46 @@
-import request from 'request';
+import http from 'https';
 import cheerio from 'cheerio';
+import url from 'url';
 import dotenv from 'dotenv';
 import uuid from 'uuid/v4';
-import db from './models';
-const { Quote } = db;
+import { saveQuotes } from './data';
+const { jsonResponse } = require('./helper');
+
 dotenv.config();
 const { URL } = process.env;
-const saveQuotes = quotes => {
-  try {
-    Quote.bulkCreate(quotes);
-  } catch (error) {
-    console.log(error.message);
-  }
-};
 
-const notFound = res =>
-  res.status(404).json({ message: 'Oops! not quote found' });
-export default async (req, res) => {
-  try {
-    const { query } = req.query;
-    request(`${URL}?q=${query}`, async (error, response, html) => {
-      if (error) {
-        throw new Error('Something happened');
-      }
-      if (!response || response.statusCode != 200) {
-        return notFound(res);
-      }
-
-      const $ = cheerio.load(html);
-      const quotes = [];
-      $('.qll-bg .clearfix').each((i, elm) => {
-        const quote = $(elm).children();
-        if (quote.length > 0) {
+export default (req, res) => {
+  const {
+    query: { query }
+  } = url.parse(req.url, true);
+  return http
+    .get(`${URL}?q=${query}`, resp => {
+      let data = '';
+      resp.on('data', chunk => {
+        data += chunk;
+      });
+      return resp.on('end', () => {
+        const $ = cheerio.load(data);
+        const quotes = [];
+        $('div.qll-bg').map(function() {
           quotes.push({
-            author: quote
-              .last()
-              .children()
-              .first()
+            cacheId: uuid(),
+            description: $(this)
+              .find('a.b-qt')
               .text(),
-            description: quote.first().text()
+            author: $(this)
+              .find('a.bq-aut')
+              .text()
           });
+        });
+        if (quotes.length >= 1) {
+          saveQuotes(res, quotes);
+        } else {
+          jsonResponse(res, 404, { message: 'Success', quotes });
         }
       });
-      if (quotes.length > 0) {
-        saveQuotes(quotes);
-        return res.status(200).json({
-          message: 'success',
-          quotes: quotes.map((item, id) => ({
-            id: ++id,
-            cacheId: uuid(),
-            ...item
-          }))
-        });
-      }
-      return notFound(res);
+    })
+    .on('error', err => {
+      jsonResponse(res, 400, { error: err.message });
     });
-  } catch (error) {
-    return res.status(400).json({ error });
-  }
 };

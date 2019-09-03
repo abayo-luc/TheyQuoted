@@ -1,11 +1,16 @@
+import url from 'url';
 import db from './models';
 import sequelize from 'sequelize';
+import scrape from './scrap';
+const { jsonResponse } = require('./helper');
 const { Op } = sequelize;
 const { Quote } = db;
 
-export const getQuotes = async (req, res, next) => {
+export const getQuotes = async (req, res) => {
   try {
-    const { query } = req.query;
+    const {
+      query: { query }
+    } = url.parse(req.url, true);
     const text = query.toString().trim();
     const quotes = await Quote.findAll({
       where: {
@@ -23,11 +28,24 @@ export const getQuotes = async (req, res, next) => {
         ]
       }
     });
-    if (quotes.length < 2) {
-      return next();
+    console.log(quotes.length);
+    if (quotes.length < 5) {
+      return scrape(req, res);
     }
-    return res.status(200).json({ message: 'Success', quotes });
+    return jsonResponse(res, 200, { message: 'Success', quotes });
   } catch (error) {
-    return res.status(400).json({ error: error.message });
+    return jsonResponse(res, 400, { error: error.message });
+  }
+};
+
+export const saveQuotes = async (res, quotes) => {
+  try {
+    const data = await Quote.bulkCreate(quotes, {
+      ignoreDuplicates: true,
+      individualHooks: true
+    });
+    jsonResponse(res, 200, { message: 'Success', quotes: data });
+  } catch (err) {
+    jsonResponse(res, 400, { error: err.message });
   }
 };
